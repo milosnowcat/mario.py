@@ -29,6 +29,7 @@ class World():
         self.tile_list = []
 
         dirt_img = pygame.image.load('assets/img/dirt.png')
+        grass_img = pygame.image.load('assets/img/grass.png')
 
         row_count = 0
         for row in data:
@@ -36,6 +37,13 @@ class World():
             for tile in row:
                 if tile == 1:
                     img = pygame.transform.scale(dirt_img, (tile_size, tile_size))
+                    img_rect = img.get_rect()
+                    img_rect.x = col_count * tile_size
+                    img_rect.y = row_count * tile_size
+                    tile = (img, img_rect)
+                    self.tile_list.append(tile)
+                elif tile == 2:
+                    img = pygame.transform.scale(grass_img, (tile_size, tile_size))
                     img_rect = img.get_rect()
                     img_rect.x = col_count * tile_size
                     img_rect.y = row_count * tile_size
@@ -53,11 +61,11 @@ world_data = [
     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,2,2,1],
+    [1,0,0,0,0,0,0,2,0,2,0,2,2,1,1,1],
+    [1,0,0,0,2,2,0,0,0,0,0,1,1,1,1,1],
+    [1,0,0,2,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1],
 ]
 
 world = World(world_data)
