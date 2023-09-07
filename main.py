@@ -24,6 +24,17 @@ def draw_grid():
         pygame.draw.line(screen, (255, 255, 255), (0, line * tile_size), (screen_width, line * tile_size))
         pygame.draw.line(screen, (255, 255, 255), (line * tile_size, 0), (line * tile_size, screen_height))
 
+class Player():
+    def __init__(self, x, y):
+        img = pygame.image.load('assets/img/dino.png')
+        self.image = pygame.transform.scale(img, (60, 68))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+    
+    def update(self):
+        screen.blit(self.image, self.rect)
+
 class World():
     def __init__(self, data):
         self.tile_list = []
@@ -68,6 +79,7 @@ world_data = [
     [1,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1],
 ]
 
+player = Player(120, screen_height - 128)
 world = World(world_data)
 
 run = True
@@ -75,7 +87,7 @@ while run:
     screen.blit(bg_img, (0, 0))
 
     world.draw()
-    draw_grid()
+    player.update()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
