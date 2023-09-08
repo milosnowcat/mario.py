@@ -8,6 +8,9 @@ from pygame.locals import *
 
 pygame.init()
 
+clock = pygame.time.Clock()
+fps = 60
+
 screen_width = 960
 screen_height = 540
 
@@ -26,17 +29,37 @@ def draw_grid():
 
 class Player():
     def __init__(self, x, y):
-        img = pygame.image.load('assets/img/dino.png')
-        self.image = pygame.transform.scale(img, (60, 68))
+        self.images_right = []
+        self.images_left = []
+        self.index = 0
+        self.counter = 0
+
+        img_idle_right = pygame.image.load('assets/img/dino.png')
+        img_idle_right = pygame.transform.scale(img_idle_right, (60, 68))
+        img_idle_left = pygame.transform.flip(img_idle_right, True, False)
+        self.image_idle_right = img_idle_right
+        self.image_idle_left = img_idle_left
+
+        for num in range(1, 7):
+            img_right = pygame.image.load(f'assets/img/dino_walk{num}.png')
+            img_right = pygame.transform.scale(img_right, (60, 68))
+            img_left = pygame.transform.flip(img_right, True, False)
+            self.images_right.append(img_right)
+            self.images_left.append(img_left)
+
+        self.image = self.image_idle_right
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
         self.vel_y = 0
         self.jumped = False
+        self.direction = 0
     
     def update(self):
         dx = 0
         dy = 0
+        walk_cooldown = 5
+
         key = pygame.key.get_pressed()
         if key[pygame.K_SPACE] and not self.jumped:
             self.vel_y = -15
@@ -45,8 +68,29 @@ class Player():
             self.jumped = False
         if key[pygame.K_LEFT]:
             dx -= 3
+            self.counter += 1
+            self.direction = -1
         if key[pygame.K_RIGHT]:
             dx += 3
+            self.counter += 1
+            self.direction = 1
+        if not key[pygame.K_LEFT] and not key[pygame.K_RIGHT]:
+            self.counter = 0
+            self.index = 0
+            if self.direction == 1:
+                self.image = self.image_idle_right
+            if self.direction == -1:
+                self.image = self.image_idle_left
+
+        if self.counter > walk_cooldown:
+            self.counter = 0
+            self.index += 1
+            if self.index >= len(self.images_right):
+                self.index = 0
+            if self.direction == 1:
+                self.image = self.images_right[self.index]
+            if self.direction == -1:
+                self.image = self.images_left[self.index]
 
         self.vel_y += 1
         if self.vel_y > 10:
@@ -114,6 +158,8 @@ world = World(world_data)
 
 run = True
 while run:
+    clock.tick(fps)
+
     screen.blit(bg_img, (0, 0))
 
     world.draw()
