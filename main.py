@@ -51,6 +51,8 @@ class Player():
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
         self.vel_y = 0
         self.jumped = False
         self.direction = 0
@@ -98,7 +100,16 @@ class Player():
 
         dy += self.vel_y
 
-        # collisions
+        for tile in world.tile_list:
+            if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
+                dx = 0
+
+            if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
+                if self.vel_y < 0:
+                    dy = tile[1].bottom - self.rect.top
+                    self.vel_y = 0
+                elif self.vel_y > 0:
+                    dy = tile[1].top - self.rect.bottom
 
         self.rect.x += dx
         self.rect.y += dy
@@ -106,6 +117,15 @@ class Player():
         if self.rect.bottom > screen_height:
             self.rect.bottom = screen_height
             dy = 0
+        if self.rect.top < 0:
+            self.rect.top = 0
+            self.vel_y = 0
+        if self.rect.right > screen_width:
+            self.rect.right = screen_width
+            dx = 0
+        if self.rect.left < 0:
+            self.rect.left = 0
+            dx = 0
 
         screen.blit(self.image, self.rect)
 
@@ -142,15 +162,15 @@ class World():
             screen.blit(tile[0], tile[1])
 
 world_data = [
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,2,2,1],
-    [1,0,0,0,0,0,0,2,0,2,0,2,2,1,1,1],
-    [1,0,0,0,2,2,0,0,0,0,0,1,1,1,1,1],
-    [1,0,0,2,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2],
+    [0,0,0,0,0,0,0,0,2,0,0,2,2,1,1,1],
+    [0,0,0,0,2,2,0,0,0,0,0,1,1,1,1,1],
+    [0,0,0,2,1,1,0,0,0,0,0,1,1,1,1,1],
+    [2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1],
 ]
 
 player = Player(120, screen_height - 120)
