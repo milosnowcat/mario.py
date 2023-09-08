@@ -31,8 +31,38 @@ class Player():
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.vel_y = 0
+        self.jumped = False
     
     def update(self):
+        dx = 0
+        dy = 0
+        key = pygame.key.get_pressed()
+        if key[pygame.K_SPACE] and not self.jumped:
+            self.vel_y = -15
+            self.jumped = True
+        if not key[pygame.K_SPACE]:
+            self.jumped = False
+        if key[pygame.K_LEFT]:
+            dx -= 3
+        if key[pygame.K_RIGHT]:
+            dx += 3
+
+        self.vel_y += 1
+        if self.vel_y > 10:
+            self.vel_y = 10
+
+        dy += self.vel_y
+
+        # collisions
+
+        self.rect.x += dx
+        self.rect.y += dy
+
+        if self.rect.bottom > screen_height:
+            self.rect.bottom = screen_height
+            dy = 0
+
         screen.blit(self.image, self.rect)
 
 class World():
@@ -53,7 +83,7 @@ class World():
                     img_rect.y = row_count * tile_size
                     tile = (img, img_rect)
                     self.tile_list.append(tile)
-                elif tile == 2:
+                if tile == 2:
                     img = pygame.transform.scale(grass_img, (tile_size, tile_size))
                     img_rect = img.get_rect()
                     img_rect.x = col_count * tile_size
@@ -79,7 +109,7 @@ world_data = [
     [1,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1],
 ]
 
-player = Player(120, screen_height - 128)
+player = Player(120, screen_height - 120)
 world = World(world_data)
 
 run = True
