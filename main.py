@@ -19,10 +19,13 @@ pygame.display.set_caption('Mario')
 
 tile_size = 60
 game_over = 0
+main_menu = True
 
 background = pygame.image.load('assets/img/background.png')
 bg_img = pygame.transform.scale(background, (screen_width, screen_height))
 img_restart = pygame.image.load('assets/img/button_restart.png')
+img_start = pygame.image.load('assets/img/button_start.png')
+img_exit = pygame.image.load('assets/img/button_exit.png')
 
 def draw_grid():
     for line in range(0,17):
@@ -265,7 +268,9 @@ player = Player(0, screen_height - 120)
 spike_group = pygame.sprite.Group()
 water_group = pygame.sprite.Group()
 world = World(world_data)
-restart_button = Button(screen_width / 2 - 64, screen_height / 2 - 64, img_restart)
+restart_button = Button(screen_width / 2 - 32, screen_height / 2 - 32, img_restart)
+start_button = Button(screen_width / 2 - 128, screen_height / 2 - 32, img_start)
+exit_button = Button(screen_width / 2 + 64, screen_height / 2 - 32, img_exit)
 
 run = True
 while run:
@@ -273,15 +278,21 @@ while run:
 
     screen.blit(bg_img, (0, 0))
 
-    world.draw()
-    spike_group.draw(screen)
-    water_group.draw(screen)
-    game_over = player.update(game_over)
+    if main_menu:
+        if exit_button.draw():
+            run = False
+        if start_button.draw():
+            main_menu = False
+    else:
+        world.draw()
+        spike_group.draw(screen)
+        water_group.draw(screen)
+        game_over = player.update(game_over)
 
-    if game_over == -1:
-        if restart_button.draw():
-            player.reset(0, screen_height - 120)
-            game_over = 0
+        if game_over == -1:
+            if restart_button.draw():
+                player.reset(0, screen_height - 120)
+                game_over = 0
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
