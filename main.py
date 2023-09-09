@@ -166,12 +166,23 @@ class World():
                     img_rect.y = row_count * tile_size
                     tile = (img, img_rect)
                     self.tile_list.append(tile)
+                if tile == 3:
+                    spike = Spike(col_count * tile_size, row_count * tile_size + 30)
+                    spike_group.add(spike)
                 col_count += 1
             row_count += 1
 
     def draw(self):
         for tile in self.tile_list:
             screen.blit(tile[0], tile[1])
+
+class Spike(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load('assets/img/spike.png')
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
 
 world_data = [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -181,11 +192,12 @@ world_data = [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,2,0,0,2,2,2],
     [0,0,0,0,0,0,2,2,0,0,0,0,0,1,1,1],
-    [0,0,0,0,2,2,1,1,0,0,0,0,0,1,1,1],
+    [0,0,0,3,2,2,1,1,0,0,0,0,0,1,1,1],
     [2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1],
 ]
 
 player = Player(0, screen_height - 120)
+spike_group = pygame.sprite.Group()
 world = World(world_data)
 
 run = True
@@ -195,6 +207,7 @@ while run:
     screen.blit(bg_img, (0, 0))
 
     world.draw()
+    spike_group.draw(screen)
     player.update()
 
     for event in pygame.event.get():
