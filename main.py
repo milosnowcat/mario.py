@@ -18,6 +18,7 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Mario')
 
 tile_size = 60
+game_over = 0
 
 background = pygame.image.load('assets/img/background.png')
 bg_img = pygame.transform.scale(background, (screen_width, screen_height))
@@ -46,9 +47,15 @@ class Player():
         self.image_jump_right = img_jump_right
         self.image_jump_left = img_jump_left
 
+        img_dead_right = pygame.image.load('assets/img/dino_dead.png')
+        img_dead_right = pygame.transform.scale(img_dead_right, (60, 68))
+        img_dead_left = pygame.transform.flip(img_dead_right, True, False)
+        self.image_dead_right = img_dead_right
+        self.image_dead_left = img_dead_left
+
         for num in range(1, 7):
             img_right = pygame.image.load(f'assets/img/dino_walk{num}.png')
-            img_right = pygame.transform.scale(img_right, (60, 68))
+            img_right = pygame.transform.scale(img_right, (60, 72))
             img_left = pygame.transform.flip(img_right, True, False)
             self.images_right.append(img_right)
             self.images_left.append(img_left)
@@ -63,83 +70,97 @@ class Player():
         self.jumped = False
         self.direction = 0
     
-    def update(self):
+    def update(self, game_over):
         dx = 0
         dy = 0
         walk_cooldown = 5
 
-        key = pygame.key.get_pressed()
-        if key[pygame.K_SPACE] and not self.jumped:
-            self.vel_y = -15
-            self.jumped = True
-        if not key[pygame.K_SPACE]:
-            self.jumped = False
-        if key[pygame.K_LEFT]:
-            dx -= 3
-            self.counter += 1
-            self.direction = -1
-        if key[pygame.K_RIGHT]:
-            dx += 3
-            self.counter += 1
-            self.direction = 1
-        if not key[pygame.K_LEFT] and not key[pygame.K_RIGHT]:
-            self.counter = 0
-            self.index = 0
-            if self.direction == 1:
-                self.image = self.image_idle_right
-            if self.direction == -1:
-                self.image = self.image_idle_left
-
-        if self.counter > walk_cooldown:
-            self.counter = 0
-            self.index += 1
-            if self.index >= len(self.images_right):
+        if game_over == 0:
+            key = pygame.key.get_pressed()
+            if key[pygame.K_SPACE] and not self.jumped:
+                self.vel_y = -15
+                self.jumped = True
+            if not key[pygame.K_SPACE]:
+                self.jumped = False
+            if key[pygame.K_LEFT]:
+                dx -= 3
+                self.counter += 1
+                self.direction = -1
+            if key[pygame.K_RIGHT]:
+                dx += 3
+                self.counter += 1
+                self.direction = 1
+            if not key[pygame.K_LEFT] and not key[pygame.K_RIGHT]:
+                self.counter = 0
                 self.index = 0
-            if self.direction == 1:
-                self.image = self.images_right[self.index]
-            if self.direction == -1:
-                self.image = self.images_left[self.index]
+                if self.direction == 1:
+                    self.image = self.image_idle_right
+                if self.direction == -1:
+                    self.image = self.image_idle_left
 
-        self.vel_y += 1
-        if self.vel_y > 10:
-            self.vel_y = 10
+            if self.counter > walk_cooldown:
+                self.counter = 0
+                self.index += 1
+                if self.index >= len(self.images_right):
+                    self.index = 0
+                if self.direction == 1:
+                    self.image = self.images_right[self.index]
+                if self.direction == -1:
+                    self.image = self.images_left[self.index]
 
-        dy += self.vel_y
+            self.vel_y += 1
+            if self.vel_y > 10:
+                self.vel_y = 10
 
-        for tile in world.tile_list:
-            if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
+            dy += self.vel_y
+
+            for tile in world.tile_list:
+                if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
+                    dx = 0
+
+                if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
+                    if self.vel_y < 0:
+                        dy = tile[1].bottom - self.rect.top
+                        self.vel_y = 0
+                    elif self.vel_y > 0:
+                        dy = tile[1].top - self.rect.bottom
+                else:
+                    if self.vel_y < 0:
+                        if self.direction == 1:
+                            self.image = self.image_jump_right
+                        if self.direction == -1:
+                            self.image = self.image_jump_left
+
+            if pygame.sprite.spritecollide(self, spike_group, False):
+                game_over = -1
+
+            if pygame.sprite.spritecollide(self, water_group, False):
+                game_over = -1
+
+            self.rect.x += dx
+            self.rect.y += dy
+
+            if self.rect.bottom > screen_height:
+                self.rect.bottom = screen_height
+                dy = 0
+            if self.rect.top < 0:
+                self.rect.top = 0
+                self.vel_y = 0
+            if self.rect.right > screen_width:
+                self.rect.right = screen_width
                 dx = 0
-
-            if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
-                if self.vel_y < 0:
-                    dy = tile[1].bottom - self.rect.top
-                    self.vel_y = 0
-                elif self.vel_y > 0:
-                    dy = tile[1].top - self.rect.bottom
-            else:
-                if self.vel_y < 0:
-                    if self.direction == 1:
-                        self.image = self.image_jump_right
-                    if self.direction == -1:
-                        self.image = self.image_jump_left
-
-        self.rect.x += dx
-        self.rect.y += dy
-
-        if self.rect.bottom > screen_height:
-            self.rect.bottom = screen_height
-            dy = 0
-        if self.rect.top < 0:
-            self.rect.top = 0
-            self.vel_y = 0
-        if self.rect.right > screen_width:
-            self.rect.right = screen_width
-            dx = 0
-        if self.rect.left < 0:
-            self.rect.left = 0
-            dx = 0
+            if self.rect.left < 0:
+                self.rect.left = 0
+                dx = 0
+        elif game_over == -1:
+            if self.direction == 1:
+                self.image = self.image_dead_right
+            if self.direction == -1:
+                self.image = self.image_dead_left
 
         screen.blit(self.image, self.rect)
+
+        return game_over
 
 class World():
     def __init__(self, data):
@@ -167,8 +188,11 @@ class World():
                     tile = (img, img_rect)
                     self.tile_list.append(tile)
                 if tile == 3:
-                    spike = Spike(col_count * tile_size, row_count * tile_size + 30)
+                    spike = Spike(col_count * tile_size + (tile_size / 4), row_count * tile_size + 30)
                     spike_group.add(spike)
+                if tile == 4:
+                    water = Water(col_count * tile_size, row_count * tile_size + (tile_size / 2))
+                    water_group.add(water)
                 col_count += 1
             row_count += 1
 
@@ -179,7 +203,17 @@ class World():
 class Spike(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load('assets/img/spike.png')
+        img = pygame.image.load('assets/img/spike.png')
+        self.image = img
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+class Water(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        img = pygame.image.load('assets/img/water.png')
+        self.image = pygame.transform.scale(img, (tile_size, tile_size * 1.5))
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -191,13 +225,14 @@ world_data = [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,2,0,0,2,2,2],
-    [0,0,0,0,0,0,2,2,0,0,0,0,0,1,1,1],
+    [0,0,0,0,0,0,2,2,4,4,4,4,4,1,1,1],
     [0,0,0,3,2,2,1,1,0,0,0,0,0,1,1,1],
     [2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1],
 ]
 
 player = Player(0, screen_height - 120)
 spike_group = pygame.sprite.Group()
+water_group = pygame.sprite.Group()
 world = World(world_data)
 
 run = True
@@ -208,7 +243,8 @@ while run:
 
     world.draw()
     spike_group.draw(screen)
-    player.update()
+    water_group.draw(screen)
+    game_over = player.update(game_over)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
