@@ -40,6 +40,12 @@ class Player():
         self.image_idle_right = img_idle_right
         self.image_idle_left = img_idle_left
 
+        img_jump_right = pygame.image.load('assets/img/dino_jump.png')
+        img_jump_right = pygame.transform.scale(img_jump_right, (60, 68))
+        img_jump_left = pygame.transform.flip(img_jump_right, True, False)
+        self.image_jump_right = img_jump_right
+        self.image_jump_left = img_jump_left
+
         for num in range(1, 7):
             img_right = pygame.image.load(f'assets/img/dino_walk{num}.png')
             img_right = pygame.transform.scale(img_right, (60, 68))
@@ -110,6 +116,12 @@ class Player():
                     self.vel_y = 0
                 elif self.vel_y > 0:
                     dy = tile[1].top - self.rect.bottom
+            else:
+                if self.vel_y < 0:
+                    if self.direction == 1:
+                        self.image = self.image_jump_right
+                    if self.direction == -1:
+                        self.image = self.image_jump_left
 
         self.rect.x += dx
         self.rect.y += dy
