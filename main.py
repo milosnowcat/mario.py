@@ -6,7 +6,10 @@
 import pygame
 from pygame.locals import *
 import utils
+from pygame import mixer
 
+pygame.mixer.pre_init(44100, -16, 2, 512)
+mixer.init()
 pygame.init()
 
 clock = pygame.time.Clock()
@@ -34,6 +37,15 @@ bg_img = pygame.transform.scale(background, (screen_width, screen_height))
 img_restart = pygame.image.load('assets/img/button_restart.png')
 img_start = pygame.image.load('assets/img/button_start.png')
 img_exit = pygame.image.load('assets/img/button_exit.png')
+
+pygame.mixer.music.load('assets/audio/music.wav')
+pygame.mixer.music.play(-1, 0.0, 5000)
+coin_fx = pygame.mixer.Sound('assets/audio/coin.wav')
+coin_fx.set_volume(0.5)
+jump_fx = pygame.mixer.Sound('assets/audio/jump.wav')
+jump_fx.set_volume(0.5)
+dead_fx = pygame.mixer.Sound('assets/audio/dead.wav')
+dead_fx.set_volume(0.5)
 
 def draw_text(text, font, color, x, y):
     img = font.render(text, True, color)
@@ -87,6 +99,7 @@ class Player():
         if game_over == 0:
             key = pygame.key.get_pressed()
             if key[pygame.K_SPACE] and not self.jumped and not self.in_air:
+                jump_fx.play()
                 self.vel_y = -15
                 self.jumped = True
             if not key[pygame.K_SPACE]:
@@ -144,9 +157,11 @@ class Player():
 
             if pygame.sprite.spritecollide(self, spike_group, False):
                 game_over = -1
+                dead_fx.play()
 
             if pygame.sprite.spritecollide(self, water_group, False):
                 game_over = -1
+                dead_fx.play()
             
             if pygame.sprite.spritecollide(self, chest_group, False):
                 game_over = 1
@@ -338,13 +353,17 @@ while run:
         if game_over == 0:
             if pygame.sprite.spritecollide(player, coin_group, True):
                 score += 1
+                coin_fx.play()
 
         if game_over == -1:
+            pygame.mixer.music.stop()
+
             if restart_button.draw():
                 game_data = next_level(level)
                 world = World(game_data[0])
                 game_over = 0
                 score = 0
+                pygame.mixer.music.play(-1, 0.0, 5000)
 
             draw_text('GAME OVER!', font, black, screen_width / 2 - (screen_width / 3) , screen_height / 2 - (screen_height / 4))
         
