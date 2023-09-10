@@ -5,6 +5,7 @@
 
 import pygame
 from pygame.locals import *
+import utils
 
 pygame.init()
 
@@ -20,6 +21,7 @@ pygame.display.set_caption('Mario')
 tile_size = 60
 game_over = 0
 main_menu = True
+level = 1
 
 background = pygame.image.load('assets/img/background.png')
 bg_img = pygame.transform.scale(background, (screen_width, screen_height))
@@ -27,10 +29,16 @@ img_restart = pygame.image.load('assets/img/button_restart.png')
 img_start = pygame.image.load('assets/img/button_start.png')
 img_exit = pygame.image.load('assets/img/button_exit.png')
 
-def draw_grid():
-    for line in range(0,17):
-        pygame.draw.line(screen, (255, 255, 255), (0, line * tile_size), (screen_width, line * tile_size))
-        pygame.draw.line(screen, (255, 255, 255), (line * tile_size, 0), (line * tile_size, screen_height))
+def next_level(level):
+    spike_group.empty()
+    water_group.empty()
+    chest_group.empty()
+
+    game_data = utils.worlds(level)
+
+    player.reset(game_data[1][0], game_data[1][1])
+
+    return game_data
 
 class Button():
     def __init__(self, x, y, image):
@@ -128,6 +136,9 @@ class Player():
 
             if pygame.sprite.spritecollide(self, water_group, False):
                 game_over = -1
+            
+            if pygame.sprite.spritecollide(self, chest_group, False):
+                game_over = 1
 
             self.rect.x += dx
             self.rect.y += dy
@@ -135,6 +146,7 @@ class Player():
             if self.rect.bottom > screen_height:
                 self.rect.bottom = screen_height
                 dy = 0
+                self.in_air = False
             if self.rect.top < 0:
                 self.rect.top = 0
                 self.vel_y = 0
@@ -227,6 +239,9 @@ class World():
                 if tile == 4:
                     water = Water(col_count * tile_size, row_count * tile_size + (tile_size / 2))
                     water_group.add(water)
+                if tile == 5:
+                    chest = Chest(col_count * tile_size, row_count * tile_size)
+                    chest_group.add(chest)
                 col_count += 1
             row_count += 1
 
@@ -252,22 +267,23 @@ class Water(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
-world_data = [
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,2,0,0,2,2,2],
-    [0,0,0,0,0,0,2,2,4,4,4,4,4,1,1,1],
-    [0,0,0,3,2,2,1,1,0,0,0,0,0,1,1,1],
-    [2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1],
-]
 
-player = Player(0, screen_height - 120)
+class Chest(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        img = pygame.image.load('assets/img/chest.png')
+        self.image = pygame.transform.scale(img, (tile_size, tile_size))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+game_data = utils.worlds(level)
+
+player = Player(game_data[1][0], game_data[1][1])
 spike_group = pygame.sprite.Group()
 water_group = pygame.sprite.Group()
-world = World(world_data)
+chest_group = pygame.sprite.Group()
+world = World(game_data[0])
 restart_button = Button(screen_width / 2 - 32, screen_height / 2 - 32, img_restart)
 start_button = Button(screen_width / 2 - 128, screen_height / 2 - 32, img_start)
 exit_button = Button(screen_width / 2 + 64, screen_height / 2 - 32, img_exit)
@@ -287,12 +303,27 @@ while run:
         world.draw()
         spike_group.draw(screen)
         water_group.draw(screen)
+        chest_group.draw(screen)
         game_over = player.update(game_over)
 
         if game_over == -1:
             if restart_button.draw():
-                player.reset(0, screen_height - 120)
+                game_data = next_level(level)
+                world = World(game_data[0])
                 game_over = 0
+        
+        if game_over == 1:
+            level += 1
+            if level == utils.total():
+                game_data = next_level(level)
+                world = World(game_data[0])
+                game_over = 0
+            else:
+                level = 1
+                game_data = next_level(level)
+                world = World(game_data[0])
+                game_over = 0
+                main_menu = True
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
