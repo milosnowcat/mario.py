@@ -15,6 +15,10 @@ fps = 60
 screen_width = 960
 screen_height = 540
 
+font = pygame.font.Font('assets/fonts/PressStart2P-Regular.ttf', 70)
+font_score = pygame.font.Font('assets/fonts/PressStart2P-Regular.ttf', 30)
+black = (0, 0, 0)
+
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Mario')
 
@@ -22,6 +26,8 @@ tile_size = 60
 game_over = 0
 main_menu = True
 level = 1
+score = 0
+win = False
 
 background = pygame.image.load('assets/img/background.png')
 bg_img = pygame.transform.scale(background, (screen_width, screen_height))
@@ -29,10 +35,15 @@ img_restart = pygame.image.load('assets/img/button_restart.png')
 img_start = pygame.image.load('assets/img/button_start.png')
 img_exit = pygame.image.load('assets/img/button_exit.png')
 
+def draw_text(text, font, color, x, y):
+    img = font.render(text, True, color)
+    screen.blit(img, (x, y))
+
 def next_level(level):
     spike_group.empty()
     water_group.empty()
     chest_group.empty()
+    coin_group.empty()
 
     game_data = utils.worlds(level)
 
@@ -234,7 +245,7 @@ class World():
                     tile = (img, img_rect)
                     self.tile_list.append(tile)
                 if tile == 3:
-                    spike = Spike(col_count * tile_size + (tile_size / 4), row_count * tile_size + 30)
+                    spike = Spike(col_count * tile_size + (tile_size / 2), row_count * tile_size + tile_size)
                     spike_group.add(spike)
                 if tile == 4:
                     water = Water(col_count * tile_size, row_count * tile_size + (tile_size / 2))
@@ -242,6 +253,9 @@ class World():
                 if tile == 5:
                     chest = Chest(col_count * tile_size, row_count * tile_size)
                     chest_group.add(chest)
+                if tile == 6:
+                    coin = Coin(col_count * tile_size + (tile_size / 2), row_count * tile_size + (tile_size / 2))
+                    coin_group.add(coin)
                 col_count += 1
             row_count += 1
 
@@ -255,8 +269,7 @@ class Spike(pygame.sprite.Sprite):
         img = pygame.image.load('assets/img/spike.png')
         self.image = img
         self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
+        self.rect.center = (x, y)
 
 class Water(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -277,13 +290,25 @@ class Chest(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
+class Coin(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        img = pygame.image.load('assets/img/coin.png')
+        self.image = pygame.transform.scale(img, (tile_size / 2, tile_size / 2))
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+
 game_data = utils.worlds(level)
 
 player = Player(game_data[1][0], game_data[1][1])
+
 spike_group = pygame.sprite.Group()
 water_group = pygame.sprite.Group()
 chest_group = pygame.sprite.Group()
+coin_group = pygame.sprite.Group()
+
 world = World(game_data[0])
+
 restart_button = Button(screen_width / 2 - 32, screen_height / 2 - 32, img_restart)
 start_button = Button(screen_width / 2 - 128, screen_height / 2 - 32, img_start)
 exit_button = Button(screen_width / 2 + 64, screen_height / 2 - 32, img_exit)
@@ -299,22 +324,33 @@ while run:
             run = False
         if start_button.draw():
             main_menu = False
+        if win:
+            draw_text('YOU WIN!', font, black, screen_width / 2 - (screen_width / 4) , screen_height / 2 - (screen_height / 4))
     else:
         world.draw()
         spike_group.draw(screen)
         water_group.draw(screen)
         chest_group.draw(screen)
+        coin_group.draw(screen)
         game_over = player.update(game_over)
+        draw_text('X' + str(score), font_score, black, tile_size, tile_size / 4)
+
+        if game_over == 0:
+            if pygame.sprite.spritecollide(player, coin_group, True):
+                score += 1
 
         if game_over == -1:
             if restart_button.draw():
                 game_data = next_level(level)
                 world = World(game_data[0])
                 game_over = 0
+                score = 0
+
+            draw_text('GAME OVER!', font, black, screen_width / 2 - (screen_width / 3) , screen_height / 2 - (screen_height / 4))
         
         if game_over == 1:
             level += 1
-            if level == utils.total():
+            if level <= utils.total():
                 game_data = next_level(level)
                 world = World(game_data[0])
                 game_over = 0
@@ -324,6 +360,8 @@ while run:
                 world = World(game_data[0])
                 game_over = 0
                 main_menu = True
+                win = True
+                score = 0
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
