@@ -1,4 +1,12 @@
 def worlds(level):
+    """
+    The function `worlds` returns a tuple containing a 2D list representing a game world and a tuple
+    representing the starting position of the player character, based on the input level.
+    
+    :param level: The level parameter is used to determine which world to generate. If level is 1, it
+    will generate the first world. If level is 2, it will generate the second world
+    :return: a tuple containing the world grid and the starting position for the player.
+    """
     world = []
     start = (0, 0)
 
@@ -34,6 +42,11 @@ def worlds(level):
     return (world, start)
 
 def total():
+    """
+    The function "total" calculates the total number of levels in a game by incrementing the level count
+    until there are no more worlds.
+    :return: the value of the variable "count".
+    """
     level = 1
     count = 0
 

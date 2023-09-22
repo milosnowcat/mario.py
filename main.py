@@ -94,10 +94,32 @@ dead_fx = pygame.mixer.Sound('assets/audio/dead.wav')
 dead_fx.set_volume(0.5)
 
 def draw_text(text, font, color, x, y):
+    """
+    The function `draw_text` takes in parameters for text, font, color, x and y coordinates, and renders
+    the text onto the screen at the specified coordinates.
+    
+    :param text: The text parameter is a string that represents the text you want to draw on the screen
+    :param font: The font parameter is the font object that you want to use for rendering the text. It
+    should be a pygame.font.Font object
+    :param color: The color parameter is the color of the text that will be drawn on the screen. It can
+    be specified using RGB values or by using predefined color names from the pygame library, such as
+    pygame.Color('red') or pygame.Color(255, 0, 0)
+    :param x: The x parameter represents the x-coordinate of the top-left corner of the text on the
+    screen
+    :param y: The y parameter in the draw_text function represents the vertical position of where the
+    text will be drawn on the screen. It determines the distance from the top of the screen to the
+    baseline of the text
+    """
     img = font.render(text, True, color)
     screen.blit(img, (x, y))
 
 def next_level(level):
+    """
+    The function "next_level" resets the game environment and player position for the next level.
+    
+    :param level: The level parameter is an integer that represents the current level of the game
+    :return: the game data for the next level.
+    """
     spike_group.empty()
     water_group.empty()
     chest_group.empty()
@@ -109,8 +131,19 @@ def next_level(level):
 
     return game_data
 
+# The Button class represents a clickable button with an image that can be drawn on the screen and
+# detects when it is clicked.
 class Button():
     def __init__(self, x, y, image):
+        """
+        The function initializes an object with given coordinates and an image, and sets the initial
+        state of the object.
+        
+        :param x: The x-coordinate of the object's position on the screen
+        :param y: The y parameter represents the y-coordinate of the object's position on the screen
+        :param image: The "image" parameter is the image that will be displayed for the object. It is
+        passed as an argument to the constructor when creating an instance of the class
+        """
         self.image = image
         self.rect = self.image.get_rect()
         self.rect.x = x
@@ -118,6 +151,11 @@ class Button():
         self.clicked = False
 
     def draw(self):
+        """
+        The function checks if the mouse is clicked on a specific object and returns a boolean value
+        indicating whether an action should be performed.
+        :return: the value of the variable "action".
+        """
         action = False
         pos = pygame.mouse.get_pos()
 
@@ -133,11 +171,28 @@ class Button():
 
         return action
 
+# The Player class represents a player character in a game, with methods for updating its position and
+# handling user input.
 class Player():
     def __init__(self, x, y):
+        """
+        The above function is a constructor that initializes the object with the given x and y values.
+        
+        :param x: The x parameter is used to initialize the x-coordinate of an object
+        :param y: The parameter "y" is a variable that represents the y-coordinate of a point
+        """
         self.reset(x, y)
     
     def update(self, game_over):
+        """
+        The `update` function updates the position and behavior of a game character based on user input
+        and game conditions.
+        
+        :param game_over: The parameter "game_over" is a variable that indicates the current state of
+        the game. It is used to control the player's movement and actions based on whether the game is
+        over or not. If game_over is 0, the player can move and perform actions. If game_over is -1
+        :return: The variable `game_over` is being returned.
+        """
         dx = 0
         dy = 0
         walk_cooldown = 5
@@ -239,6 +294,16 @@ class Player():
         return game_over
     
     def reset(self, x, y):
+        """
+        The `reset` function initializes the attributes of a Dino object in a game, including loading
+        and scaling images, setting the initial position and velocity, and setting flags for jumping and
+        direction.
+        
+        :param x: The x parameter represents the x-coordinate of the position where the object will be
+        reset
+        :param y: The parameter `y` represents the y-coordinate of the position where the object will be
+        reset
+        """
         self.images_right = []
         self.images_left = []
         self.index = 0
@@ -280,8 +345,16 @@ class Player():
         self.direction = 0
         self.in_air = True
 
+# The World class is responsible for creating and drawing tiles based on the data provided.
 class World():
     def __init__(self, data):
+        """
+        The function initializes a list of tiles based on the given data, where each tile is represented
+        by an image and its corresponding rectangle.
+        
+        :param data: The "data" parameter is a 2D list that represents the layout of tiles in a game
+        level. Each element in the list represents a tile, and its value determines the type of tile
+        """
         self.tile_list = []
 
         dirt_img = pygame.image.load('assets/img/dirt.png')
@@ -321,19 +394,39 @@ class World():
             row_count += 1
 
     def draw(self):
+        """
+        The function iterates through a list of tiles and blits them onto the screen.
+        """
         for tile in self.tile_list:
             screen.blit(tile[0], tile[1])
 
+# The Spike class is a subclass of pygame.sprite.Sprite that represents a spike object with an image
+# and a position.
 class Spike(pygame.sprite.Sprite):
     def __init__(self, x, y):
+        """
+        The function initializes a sprite object with an image and sets its position.
+        
+        :param x: The x parameter represents the x-coordinate of the center of the sprite
+        :param y: The y parameter represents the y-coordinate of the center of the sprite
+        """
         pygame.sprite.Sprite.__init__(self)
         img = pygame.image.load('assets/img/spike.png')
         self.image = img
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
 
+# The Water class is a sprite that represents a body of water in a game, with a specified position and
+# image.
 class Water(pygame.sprite.Sprite):
     def __init__(self, x, y):
+        """
+        This function initializes a sprite object with an image and sets its position.
+        
+        :param x: The x parameter represents the x-coordinate of the sprite's position on the screen. It
+        determines the horizontal position of the sprite
+        :param y: The parameter `y` represents the y-coordinate of the sprite's position on the screen
+        """
         pygame.sprite.Sprite.__init__(self)
         img = pygame.image.load('assets/img/water.png')
         self.image = pygame.transform.scale(img, (tile_size, tile_size * 1.5))
@@ -342,8 +435,15 @@ class Water(pygame.sprite.Sprite):
         self.rect.y = y
 
 
+# The `Chest` class represents a chest sprite in a game, with a specified position and image.
 class Chest(pygame.sprite.Sprite):
     def __init__(self, x, y):
+        """
+        The function initializes a sprite object with an image and sets its position on the screen.
+        
+        :param x: The x parameter represents the x-coordinate of the chest's position on the screen
+        :param y: The parameter "y" represents the y-coordinate of the chest's position on the screen
+        """
         pygame.sprite.Sprite.__init__(self)
         img = pygame.image.load('assets/img/chest.png')
         self.image = pygame.transform.scale(img, (tile_size, tile_size))
@@ -351,8 +451,16 @@ class Chest(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
+# The Coin class represents a coin object in a game and initializes its image and position.
 class Coin(pygame.sprite.Sprite):
     def __init__(self, x, y):
+        """
+        The function initializes a sprite object with an image of a coin and sets its position.
+        
+        :param x: The x parameter represents the x-coordinate of the center of the coin sprite on the
+        screen
+        :param y: The parameter `y` represents the y-coordinate of the center of the coin sprite
+        """
         pygame.sprite.Sprite.__init__(self)
         img = pygame.image.load('assets/img/coin.png')
         self.image = pygame.transform.scale(img, (tile_size / 2, tile_size / 2))
@@ -374,6 +482,8 @@ restart_button = Button(screen_width / 2 - 32, screen_height / 2 - 32, img_resta
 start_button = Button(screen_width / 2 - 128, screen_height / 2 - 32, img_start)
 exit_button = Button(screen_width / 2 + 64, screen_height / 2 - 32, img_exit)
 
+# The above code is a game loop written in Python using the Pygame library. It sets up a game window,
+# handles user input, updates game objects, and renders them on the screen.
 run = True
 while run:
     clock.tick(fps)
